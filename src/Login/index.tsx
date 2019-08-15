@@ -33,7 +33,22 @@ const Login = ({ history }: IProps) => {
     }
   `;
 
-  const loginUser = useMutation(loginMutation);
+  const [login] = useMutation(loginMutation, {
+    update: (_proxy, response) => {
+      if (response.data.login.result) {
+        localStorage.setItem(
+          "token",
+          response.data.login.user.accessToken.token
+        );
+        history.push("/");
+      } else {
+        alert("ログイン情報が不正です。");
+        setLoginid("");
+        setPassword("");
+      }
+    },
+    variables: { loginid, password }
+  });
 
   const { loading, data } = useQuery(loggedUserQuery);
 
@@ -42,25 +57,6 @@ const Login = ({ history }: IProps) => {
   } else if (data.loggedUser) {
     return <Redirect to="/" />;
   }
-
-  const login = () => {
-    loginUser({
-      update: (_proxy, response) => {
-        if (response.data.login.result) {
-          localStorage.setItem(
-            "token",
-            response.data.login.user.accessToken.token
-          );
-          history.push("/");
-        } else {
-          alert("ログイン情報が不正です。");
-          setLoginid("");
-          setPassword("");
-        }
-      },
-      variables: { loginid, password }
-    });
-  };
 
   return (
     <div>
@@ -87,7 +83,7 @@ const Login = ({ history }: IProps) => {
         </label>
       </div>
       <div>
-        <input type="submit" value="ログイン" onClick={login} />
+        <input type="submit" value="ログイン" onClick={() => login()} />
       </div>
     </div>
   );
